@@ -45,7 +45,7 @@ jobs:
     
     - name: Start production server
       run: |
-        NODE_ENV=production node dist/server/index.js &
+        npm start &
         echo $! > server.pid
         sleep 5
     
@@ -108,7 +108,7 @@ jobs:
     
     - name: Start production server
       run: |
-        NODE_ENV=production node dist/server/index.js &
+        npm start &
         echo $! > server.pid
         sleep 5
     
