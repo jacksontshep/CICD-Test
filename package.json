@@ -1,0 +1,43 @@
+{
+  "name": "cicd-test",
+  "version": "1.0.0",
+  "description": "Vue SSR Application with Load Testing",
+  "main": "dist/server/index.js",
+  "nsolid": {
+    "tracingEnabled": true
+  },
+  "scripts": {
+    "dev": "tsx server/index.ts",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "vite build --outDir dist/client",
+    "build:server": "vite build --ssr src/entry-server.ts --outDir dist/server",
+    "start": "cross-env NODE_ENV=production tsx server/index.ts",
+    "type-check": "vue-tsc --build",
+    "docker:build": "docker build -t vue-ssr-app:latest .",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "dependencies": {
+    "vue": "^3.5.18",
+    "@vue/server-renderer": "^3.5.18",
+    "express": "^4.21.2",
+    "compression": "^1.7.5",
+    "serve-static": "^1.16.2"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "^22.0.2",
+    "@types/node": "^22.16.5",
+    "@types/express": "^5.0.0",
+    "@types/compression": "^1.7.5",
+    "@types/serve-static": "^1.15.7",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.7.0",
+    "cross-env": "^7.0.3",
+    "tsx": "^4.19.2",
+    "typescript": "~5.8.0",
+    "vite": "^7.0.6",
+    "vite-plugin-vue-devtools": "^8.0.0",
+    "vue-tsc": "^3.0.4"
+  }
+}

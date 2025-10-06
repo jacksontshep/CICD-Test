@@ -1,0 +1,69 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 30
+      arrivalRate: 5
+      name: "Warm up"
+    - duration: 60
+      arrivalRate: 20
+      name: "Sustained load"
+    - duration: 30
+      arrivalRate: 50
+      name: "Peak load"
+    - duration: 30
+      arrivalRate: 5
+      name: "Cool down"
+  processor: "./processor.js"
+
+scenarios:
+  - name: "SSR Page Load"
+    weight: 40
+    flow:
+      - get:
+          url: "/"
+          capture:
+            - json: "$"
+              as: "response"
+      - think: 1
+
+  - name: "Health Check"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/health"
+      - think: 2
+
+  - name: "Metrics Check"
+    weight: 5
+    flow:
+      - get:
+          url: "/api/metrics"
+      - think: 3
+
+  - name: "CPU Load Test"
+    weight: 15
+    flow:
+      - get:
+          url: "/api/cpu-load?n={{ $randomNumber(30, 38) }}"
+      - think: 1
+
+  - name: "Memory Load Test"
+    weight: 15
+    flow:
+      - get:
+          url: "/api/memory-load?size={{ $randomNumber(5, 15) }}"
+      - think: 1
+
+  - name: "Async Load Test"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/async-load?delay={{ $randomNumber(50, 200) }}"
+      - think: 1
+
+  - name: "Combined Load Test"
+    weight: 5
+    flow:
+      - get:
+          url: "/api/combined-load?cpu={{ $randomNumber(28, 35) }}&memory={{ $randomNumber(3, 10) }}&delay={{ $randomNumber(50, 150) }}"
+      - think: 2

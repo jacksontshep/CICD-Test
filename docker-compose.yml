@@ -1,0 +1,30 @@
+services:
+  # Vue SSR Application with NSolid
+  vue-ssr-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NSOLID_SAAS: ${NSOLID_SAAS}
+    container_name: vue-ssr-app
+    ports:
+      - "3000:3000"  # App port
+    environment:
+      - PORT=3000
+      - NSOLID_APPNAME=vue-ssr-app
+      - NSOLID_TAGS=ssr,vue,typescript,docker
+      - NSOLID_TRACING_ENABLED=1
+      - NSOLID_SAAS=${NSOLID_SAAS}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nsolid", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

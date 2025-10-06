@@ -1,0 +1,22 @@
+{
+  "appName": "vue-ssr-app",
+  "command": "localhost:9001",
+  "data": "localhost:9002",
+  "bulk": "localhost:9003",
+  "interval": 3000,
+  "tags": [
+    "ssr",
+    "vue",
+    "typescript",
+    "load-testing"
+  ],
+  "blockedLoopThreshold": 200,
+  "cpuProfilerInterval": 1000,
+  "heapProfilerInterval": 60000,
+  "statsd": {
+    "enabled": false
+  },
+  "otlp": {
+    "enabled": false
+  }
+}
