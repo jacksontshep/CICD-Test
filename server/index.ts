@@ -6,7 +6,6 @@ const express = require('express')
 const compression = require('compression')
 const serveStatic = require('serve-static')
 const nsolid = require('nsolid')
-const isProduction = process.env.NODE_ENV === 'production'
 const port = process.env.PORT || 3000
 const base = process.env.BASE || '/'
 
@@ -16,31 +15,15 @@ const app = express()
 // Add compression middleware
 app.use(compression())
 
-// Template HTML
-const templateHtml = isProduction
-  ? fs.readFileSync(path.resolve(__dirname, '../dist/client/index.html'), 'utf-8')
-  : ''
+// Template HTML (production only)
+const templateHtml = fs.readFileSync(path.resolve(__dirname, '../dist/client/index.html'), 'utf-8')
 
 // SSR manifest for production
-const ssrManifest = isProduction
-  ? fs.readFileSync(path.resolve(__dirname, '../dist/client/.vite/ssr-manifest.json'), 'utf-8')
-  : undefined
-
-// Vite setup
-let vite: any
+const ssrManifest = fs.readFileSync(path.resolve(__dirname, '../dist/client/.vite/ssr-manifest.json'), 'utf-8')
 
 async function initializeServer() {
-  if (!isProduction) {
-    const { createServer } = await import('vite')
-    vite = await createServer({
-      server: { middlewareMode: true },
-      appType: 'custom',
-      base
-    })
-    app.use(vite.middlewares)
-  } else {
-    app.use(base, serveStatic(path.resolve(__dirname, '../dist/client'), { index: false }))
-  }
+  // Serve static files from dist/client
+  app.use(base, serveStatic(path.resolve(__dirname, '../dist/client'), { index: false }))
 
 // Load testing utilities
 interface LoadTestMetrics {
@@ -186,22 +169,10 @@ app.use('*', async (req: Request, res: Response) => {
   try {
     metrics.requestCount++
     
-    const url = req.originalUrl.replace(base, '')
-
-    let template: string
-    let render: () => Promise<string>
-
-    if (!isProduction) {
-      // Development mode
-      template = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf-8')
-      template = await vite.transformIndexHtml(url, template)
-      render = (await vite.ssrLoadModule('/src/entry-server.ts')).render
-    } else {
-      // Production mode
-      template = templateHtml
-      const entryServer = await import('../dist/server/entry-server.mjs')
-      render = entryServer.render
-    }
+    // Load production build
+    const template = templateHtml
+    const entryServer = await import('../dist/server/entry-server.mjs')
+    const render = entryServer.render
 
     const appHtml = await render()
 
@@ -212,9 +183,6 @@ app.use('*', async (req: Request, res: Response) => {
     res.status(200).set({ 'Content-Type': 'text/html' }).send(html)
   } catch (e: any) {
     metrics.errors++
-    if (!isProduction && vite) {
-      vite.ssrFixStacktrace(e)
-    }
     console.error(e.stack)
     res.status(500).end(e.stack)
   }

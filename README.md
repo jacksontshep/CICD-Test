@@ -19,13 +19,9 @@ Production-ready Vue 3 SSR application built with TypeScript, Express, and Vite.
 npm install
 ```
 
-### 2. Run Application
+### 2. Build and Run Application
 
 ```bash
-# Development mode
-npm run dev
-
-# Production mode
 npm run build
 npm start
 ```
@@ -107,7 +103,10 @@ artillery run loadtest/artillery.yml
 
 3. **Or install NSolid locally** from https://nodesource.com/products/nsolid
    ```bash
-   # Development
+   # Build first
+   npm run build
+   
+   # Run with NSolid
    nsolid node_modules/tsx/dist/cli.mjs server/index.ts
    ```
 
@@ -186,7 +185,6 @@ npm run docker:logs    # View logs
 
 | Script | Description |
 |--------|-------------|
-| `npm run dev` | Start application in development mode |
 | `npm run build` | Build client and server for production |
 | `npm start` | Run production build |
 | `npm run type-check` | Type check TypeScript |
