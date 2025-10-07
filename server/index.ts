@@ -5,7 +5,15 @@ const path = require('node:path')
 const express = require('express')
 const compression = require('compression')
 const serveStatic = require('serve-static')
-const nsolid = require('nsolid')
+
+// Optional NSolid support (only available when running with NSolid runtime)
+let nsolid: any = null
+try {
+  nsolid = require('nsolid')
+} catch (e) {
+  // NSolid not available, running with regular Node.js
+}
+
 const port = process.env.PORT || 3000
 const base = process.env.BASE || '/'
 
@@ -78,10 +86,14 @@ app.get('/api/metrics', (req: Request, res: Response) => {
 
 // CPU load endpoint with NSolid profiling
 app.get('/api/cpu-load', async (req: Request, res: Response) => {
-  nsolid.profile(4000, err =>{
-    if (err){
-    }
-})
+  // Start profiling if NSolid is available
+  if (nsolid) {
+    nsolid.profile(4000, (err: any) => {
+      if (err) {
+        console.error('NSolid profiling error:', err)
+      }
+    })
+  }
   const n = parseInt(req.query.n as string) || 40
   const start = Date.now()
   const result = fibonacci(n)
