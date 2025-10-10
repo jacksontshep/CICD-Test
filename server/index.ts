@@ -17,6 +17,14 @@ try {
 const port = process.env.PORT || 3000
 const base = process.env.BASE || '/'
 
+// Determine project root - go up from server directory
+const isCompiled = __dirname.includes('dist/server')
+const projectRoot = isCompiled 
+  ? path.resolve(__dirname, '../..') // dist/server -> project root
+  : path.resolve(__dirname, '..') // server -> project root
+
+const distClientPath = path.join(projectRoot, 'dist/client')
+
 // Create Express app
 const app = express()
 
@@ -24,14 +32,14 @@ const app = express()
 app.use(compression())
 
 // Template HTML (production only)
-const templateHtml = fs.readFileSync(path.resolve(__dirname, '../dist/client/index.html'), 'utf-8')
+const templateHtml = fs.readFileSync(path.join(distClientPath, 'index.html'), 'utf-8')
 
 // SSR manifest for production
-const ssrManifest = fs.readFileSync(path.resolve(__dirname, '../dist/client/.vite/ssr-manifest.json'), 'utf-8')
+const ssrManifest = fs.readFileSync(path.join(distClientPath, '.vite/ssr-manifest.json'), 'utf-8')
 
 async function initializeServer() {
   // Serve static files from dist/client
-  app.use(base, serveStatic(path.resolve(__dirname, '../dist/client'), { index: false }))
+  app.use(base, serveStatic(distClientPath, { index: false }))
 
 // Load testing utilities
 interface LoadTestMetrics {
@@ -194,7 +202,8 @@ app.use('*', async (req: Request, res: Response) => {
     
     // Load production build
     const template = templateHtml
-    const entryServer = await import('../dist/server/entry-server.mjs')
+    const entryServerPath = path.join(projectRoot, 'dist/server/entry-server.mjs')
+    const entryServer = await import(entryServerPath)
     const render = entryServer.render
 
     const appHtml = await render()
