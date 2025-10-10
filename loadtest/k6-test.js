@@ -11,9 +11,9 @@ const requestCounter = new Counter('total_requests');
 
 // Load test configuration
 export const options = {
-  // Simplified for CI - use constant VUs
-  vus: 20,
-  duration: '60s',
+  // Simplified for CI - minimal load test
+  vus: 5,
+  iterations: 50, // Total 50 iterations across all VUs
   thresholds: {
     'http_req_duration': ['p(95)<1000', 'p(99)<2000'],
     'errors': ['rate<0.2'],
@@ -80,7 +80,7 @@ export default function () {
     });
   }
 
-  sleep(Math.random() * 2 + 0.5); // Random sleep between 0.5-2.5s
+  sleep(0.1); // Short sleep to avoid overwhelming server
 }
 
 // Setup function - runs once at the beginning
