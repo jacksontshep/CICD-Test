@@ -50,15 +50,28 @@ jobs:
     - name: Build application
       run: npm run build
     
+    - name: Compile server
+      run: npx tsc server/index.ts --outDir dist/server --module commonjs --target es2020 --esModuleInterop --skipLibCheck --resolveJsonModule
+    
     - name: Start production server with NSolid
       run: |
-        npm start &
+        nsolid dist/server/index.js > server.log 2>&1 &
         echo $! > server.pid
         sleep 5
     
     - name: Health check
       run: |
-        curl -f http://localhost:3000/api/health || exit 1
+        echo "Waiting for server to be ready..."
+        for i in {1..30}; do
+          if curl -f http://localhost:3000/api/health 2>/dev/null; then
+            echo "Server is ready!"
+            exit 0
+          fi
+          echo "Attempt $i: Server not ready yet, waiting..."
+          sleep 2
+        done
+        echo "Server failed to start after 60 seconds"
+        exit 1
     
     - name: Install k6
       if: matrix.test-suite == 'k6'
@@ -86,7 +99,16 @@ jobs:
       run: artillery report report.json --output report.html
     
     - name: Get final metrics
-      run: curl http://localhost:3000/api/metrics
+      if: always()
+      run: curl http://localhost:3000/api/metrics || echo "Failed to get metrics"
+    
+    - name: Check server logs
+      if: always()
+      run: |
+        echo "Checking if server is still running..."
+        ps aux | grep nsolid || echo "Server process not found"
+        echo "=== Server Logs ==="
+        cat server.log || echo "No server logs found"
     
     - name: Stop server
       if: always()
@@ -94,6 +116,8 @@ jobs:
         if [ -f server.pid ]; then
           kill $(cat server.pid) || true
         fi
+        # Also kill any remaining nsolid processes
+        pkill -f "nsolid.*server/index.ts" || true
     
     - name: Upload load test results
       if: always()

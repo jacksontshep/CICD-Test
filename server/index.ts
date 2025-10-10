@@ -46,6 +46,17 @@ const metrics: LoadTestMetrics = {
   errors: 0
 }
 
+// Global error handlers to prevent crashes
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err)
+  metrics.errors++
+})
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason)
+  metrics.errors++
+})
+
 // CPU-intensive function for load testing
 function fibonacci(n: number): number {
   if (n <= 1) return n
