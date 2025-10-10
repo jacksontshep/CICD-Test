@@ -63,7 +63,7 @@ jobs:
       run: |
         if [ -f server.pid ]; then
           PID=$(cat server.pid)
-          if ps -p $PID > /dev/null; then
+          if kill -0 $PID 2>/dev/null; then
             echo "Server process is running (PID: $PID)"
           else
             echo "Server process died immediately!"
@@ -123,7 +123,14 @@ jobs:
       if: always()
       run: |
         echo "Checking if server is still running..."
-        ps aux | grep nsolid || echo "Server process not found"
+        if [ -f server.pid ]; then
+          PID=$(cat server.pid)
+          if kill -0 $PID 2>/dev/null; then
+            echo "Server is still running (PID: $PID)"
+          else
+            echo "Server process is not running"
+          fi
+        fi
         echo "=== Server Logs ==="
         cat server.log || echo "No server logs found"
     
