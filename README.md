@@ -195,13 +195,27 @@ npm run docker:logs    # View logs
 
 ## CI/CD Pipeline
 
-The GitHub Actions workflow automatically:
-- Builds on Node.js 20.x and 22.x
-- Runs type checking
-- Executes k6 and Artillery load tests
+The GitHub Actions workflow runs with **NSolid runtime** and automatically:
+- Runs in NSolid Docker container (`nodesource/nsolid:latest`)
+- Executes type checking and builds
+- Runs k6 and Artillery load tests in parallel (matrix strategy)
+- Profiles performance with NSolid during tests
 - Uploads test results as artifacts
 
-**Trigger:** Push to `main`/`develop` or create PR
+**Trigger:** Push to `main`/`develop`, PR to `main`, or manual dispatch
+
+### NSolid in CI/CD
+
+The workflow uses NSolid containers with these environment variables:
+- `NSOLID_SAAS` - Your SaaS token (from GitHub Secrets)
+- `NSOLID_APPNAME` - Application identifier
+- `NSOLID_TAGS` - Tags for filtering (ci, github-actions, load-test)
+- `NSOLID_TRACING_ENABLED` - Enables distributed tracing
+
+**Setup Required:**
+1. Go to **Settings → Secrets and variables → Actions**
+2. Add secret: `NSOLID_SAAS` with your token
+3. View profiling data in [NSolid Console](https://console.nodesource.com)
 
 ## Environment Variables
 
@@ -285,7 +299,7 @@ npm run build       # See detailed build errors
 ## Documentation
 
 - **[DOCKER.md](./DOCKER.md)** - Complete Docker guide
-- **[.env.example](./.env.example)** - Environment variables template
+- **[WORKFLOW-NSOLID.md](./WORKFLOW-NSOLID.md)** - GitHub Actions with NSolid runtime
 
 ## License
 
